@@ -14,8 +14,8 @@
   "contributes": {
     "commands": [
       {
-        "command": "commit-message-helper.helloWorld",
-        "title": "Hello World"
+        "command": "gitPrefix.setMessage",
+        "title": "Create prefix message"
       }
     ]
   },

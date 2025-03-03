@@ -1,36 +1,78 @@
-import * as vscode from 'vscode';
-import { CommitMessage } from './types';
+import * as vscode from "vscode";
+import { GitExtension, Repository } from "./api/git";
 
 export function activate(context: vscode.ExtensionContext) {
-    console.log('Congratulations, your extension "commit-message-helper" is now active!');
+  const disposable = vscode.commands.registerCommand(
+    "gitPrefix.setMessage",
+    async (uri?) => {
+      const git = getGitExtension();
 
-    const disposable = vscode.commands.registerCommand('commit-message-helper.helloWorld', async () => {
-        const prefix = await vscode.window.showInputBox({ prompt: 'Enter the prefix' });
-        const ticketId = await vscode.window.showInputBox({ prompt: 'Enter the ticket ID (e.g., pcae/tspf-planning#123)' });
-        const message = await vscode.window.showInputBox({ prompt: 'Enter the commit message' });
+      if (!git) {
+        vscode.window.showErrorMessage("Unable to load Git Extension");
+        return;
+      }
 
-        if (prefix && ticketId && message) {
-            const commitMessage: CommitMessage = {
-                prefix,
-                ticketId,
-                message
-            };
-            const finalMessage = formatCommitMessage(commitMessage);
-            const scm = vscode.scm;
-            if (scm.inputBox) {
-                scm.inputBox.value = finalMessage;
-            }
-            vscode.window.showInformationMessage(`Commit Message: ${finalMessage}`);
-        } else {
-            vscode.window.showErrorMessage('All fields are required to create a commit message.');
+      vscode.commands.executeCommand("workbench.view.scm");
+
+      if (uri) {
+        const selectedRepository = git.repositories.find((repository) => {
+          return repository.rootUri.path === uri.rootUri.path;
+        });
+
+        if (selectedRepository) {
+          await prefixCommit(selectedRepository);
         }
-    });
+      } else {
+        for (const repo of git.repositories) {
+          await prefixCommit(repo);
+        }
+      }
+    }
+  );
 
-    context.subscriptions.push(disposable);
+  context.subscriptions.push(disposable);
 }
 
-function formatCommitMessage(commitMessage: CommitMessage): string {
-    return `${commitMessage.prefix}: ${commitMessage.ticketId} ${commitMessage.message}`;
+async function prefixCommit(repository: Repository) {
+  const branchName =
+    (repository.state.HEAD && repository.state.HEAD.name) || "";
+  const ticketId = extractTicketId(branchName);
+
+  const items = [
+    { label: "feat" },
+    { label: "fix" },
+    { label: "refactor" },
+    { label: "chore" },
+  ];
+
+  const selectedItem = await vscode.window.showQuickPick(items, {
+    placeHolder: "Select an option",
+  });
+  const currentMessage = repository.inputBox.value;
+
+  repository.inputBox.value = `${
+    selectedItem?.label ?? "feat"
+  }: pcae/tspf-planning#${ticketId} ${currentMessage}`;
+  vscode.commands.executeCommand("list.focusFirst");
+  vscode.commands.executeCommand("list.select");
 }
 
-export function deactivate() {}
+function extractTicketId(branchName: string) {
+  const ticketIdPattern = branchName.match(/\d+/);
+  if (!ticketIdPattern) {
+    vscode.window.showErrorMessage("Can not find ticket id in branch name");
+    return;
+  }
+
+  return ticketIdPattern[0];
+}
+
+function getGitExtension() {
+  const vscodeGit = vscode.extensions.getExtension<GitExtension>("vscode.git");
+  const gitExtension = vscodeGit && vscodeGit.exports;
+  return gitExtension && gitExtension.getAPI(1);
+}
+
+export function deactivate() {
+  // called when extension is deactivated
+}
