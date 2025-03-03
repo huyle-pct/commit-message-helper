@@ -1,8 +1,11 @@
 {
   "name": "commit-message-helper",
   "displayName": "commit-message-helper",
-  "description": "",
+  "description": "Autofill commit message with prefix",
   "version": "0.0.1",
+  "author": {
+    "name": "Huy Le"
+  },
   "engines": {
     "vscode": "^1.97.0"
   },
@@ -23,14 +26,14 @@
       }
     ],
     "menus": {
-    "scm/title": [
-      {
-        "when": "scmProvider == git",
-        "command": "gitPrefix.setMessage",
-        "group": "navigation"
-      }
-    ]
-  }
+      "scm/title": [
+        {
+          "when": "scmProvider == git",
+          "command": "gitPrefix.setMessage",
+          "group": "navigation"
+        }
+      ]
+    }
   },
   "scripts": {
     "vscode:prepublish": "npm run compile",
