@@ -50,21 +50,24 @@ async function prefixCommit(repository: Repository) {
   });
   const currentMessage = repository.inputBox.value;
 
-  repository.inputBox.value = `${
-    selectedItem?.label ?? "feat"
-  }: pcae/tspf-planning#${ticketId} ${currentMessage}`;
+  if (!ticketId) {
+    repository.inputBox.value = `${
+      selectedItem?.label ?? "feat"
+    }: ${currentMessage}`;
+  } else {
+    repository.inputBox.value = `${
+      selectedItem?.label ?? "feat"
+    }: pcae/tspf-planning#${ticketId} ${currentMessage}`;
+  }
+
   vscode.commands.executeCommand("list.focusFirst");
   vscode.commands.executeCommand("list.select");
 }
 
 function extractTicketId(branchName: string) {
   const ticketIdPattern = branchName.match(/\d+/);
-  if (!ticketIdPattern) {
-    vscode.window.showErrorMessage("Can not find ticket id in branch name");
-    return;
-  }
 
-  return ticketIdPattern[0];
+  return ticketIdPattern?.[0];
 }
 
 function getGitExtension() {
