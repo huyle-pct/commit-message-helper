@@ -15,9 +15,22 @@
     "commands": [
       {
         "command": "gitPrefix.setMessage",
-        "title": "Create prefix message"
+        "title": "Create prefix message",
+        "icon": {
+          "light": "images/light-icon.svg",
+          "dark": "images/icon.svg"
+        }
+      }
+    ],
+    "menus": {
+    "scm/title": [
+      {
+        "when": "scmProvider == git",
+        "command": "gitPrefix.setMessage",
+        "group": "navigation"
       }
     ]
+  }
   },
   "scripts": {
     "vscode:prepublish": "npm run compile",
