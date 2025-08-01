@@ -37,6 +37,7 @@ async function prefixCommit(repository: Repository) {
   const branchName =
     (repository.state.HEAD && repository.state.HEAD.name) || "";
   const ticketId = extractTicketId(branchName);
+  const repoName = repository.rootUri.path.split('/').pop() || '';
 
   const items = [
     { label: "feat" },
@@ -55,9 +56,13 @@ async function prefixCommit(repository: Repository) {
       selectedItem?.label ?? "feat"
     }: ${currentMessage}`;
   } else {
+    const issueReference = repoName.includes('tspf-playwright') 
+      ? `pcae/tspf-playwright/issues/${ticketId}`
+      : `pcae/tspf-planning#${ticketId}`;
+    
     repository.inputBox.value = `${
       selectedItem?.label ?? "feat"
-    }: pcae/tspf-planning#${ticketId} ${currentMessage}`;
+    }: ${issueReference} ${currentMessage}`;
   }
 
   vscode.commands.executeCommand("list.focusFirst");
